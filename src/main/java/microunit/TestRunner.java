@@ -1,6 +1,8 @@
 package microunit;
 
 import java.lang.annotation.Annotation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +11,7 @@ import java.util.List;
  * Abstract base class for classes for running unit tests.
  */
 public abstract class TestRunner {
+    Logger logger = LogManager.getLogger();
 
     protected Class<?> testClass;
 
@@ -44,12 +47,16 @@ public abstract class TestRunner {
         try {
             TestResultAccumulator accumulator = new CountingTestResultAccumulator();
             for (Method method : getAnnotatedMethods(Test.class)) {
-                System.out.println(method);
+                //Changed the System.out here and instead of outputting whole method, the method's name is used
+                logger.debug("The method {} is being tested",method.getName());
                 Object instance = testClass.getConstructor().newInstance();
                 invokeTestMethod(method, instance, accumulator);
             }
-            System.out.println(accumulator);
+            //Changed SYstem.out here
+            logger.debug(accumulator);
         } catch (ReflectiveOperationException | IllegalArgumentException e) {
+            //Added logging info about the exception in the invocation of the methods
+            logger.warn("Error occured when invoking methods of the object");
             throw new InvalidTestClassException(e);
         }
     }
@@ -58,12 +65,12 @@ public abstract class TestRunner {
      * Invokes a test method on a test class instance accumulating the result of
      * the invocation into a {@link TestResultAccumulator} object.
      *
-     * @param testMethod the test method to be invoked
-     * @param instance the test class instance on which the method is invoked
+     * @param testMethod  the test method to be invoked
+     * @param instance    the test class instance on which the method is invoked
      * @param accumulator the object to accumulate the result of the invocation
      *                    into
      */
     protected abstract void invokeTestMethod(Method testMethod, Object instance,
-        TestResultAccumulator accumulator) throws IllegalAccessException;
+            TestResultAccumulator accumulator) throws IllegalAccessException;
 
 }
